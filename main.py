@@ -1,24 +1,38 @@
+from fastapi import FastAPI, Request
 import os
-from flask import Flask, request
-import telegram
+import httpx
 
-app = Flask(__name__)
+app = FastAPI()
 
-TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-bot = telegram.Bot(token=TOKEN)
+# Hämta Telegram-token från miljövariabel
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+WEBHOOK_PATH = f"/{TELEGRAM_BOT_TOKEN}"
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
-@app.route('/')
-def home():
-    return "Mp ORBbot is alive!"
+@app.get("/")
+async def root():
+    return {"message": "Mp ORBbot is live!"}
 
-@app.route(f'/{TOKEN}', methods=['POST'])
-def webhook():
-    update = telegram.Update.de_json(request.get_json(force=True), bot)
-    if update.message and update.message.text == "/status":
-        bot.send_message(chat_id=update.message.chat_id, text="ORBbot är igång ✅")
-    return "ok"
+@app.post(WEBHOOK_PATH)
+async def telegram_webhook(req: Request):
+    data = await req.json()
 
-if __name__ == "__main__":
-    PORT = int(os.environ.get('PORT', 5000))
-    app.run(host="0.0.0.0", port=PORT)
+    if "message" in data:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
+
+        if text.lower() == "/status":
+            reply = "✅ Mp ORBbot är igång!\nAI-läge: neutral\nInga aktiva trades ännu."
+        else:
+            reply = "🤖 Jag förstår inte kommandot. Skriv /status för att se botstatus."
+
+        await send_telegram_message(chat_id, reply)
+
+    return {"ok": True}
+
+async def send_telegram_message(chat_id: int, text: str):
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            f"{TELEGRAM_API_URL}/sendMessage",
+            json={"chat_id": chat_id, "text": text}
+        )
