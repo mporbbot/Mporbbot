@@ -1,3 +1,2 @@
-python-telegram-bot==20.3
-requests
-kucoin-futures-python
+flask
+python-telegram-bot==13.15
