@@ -1,11 +1,10 @@
 from fastapi import FastAPI, Request
-import os
 import httpx
 
 app = FastAPI()
 
-# Hämta Telegram-token från miljövariabel
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+# Telegram-token hårdkodad
+TELEGRAM_BOT_TOKEN = "8079688612:AAGM-6vTQ6R_ZSdfnQWD0LCqcmS7_zk46Us"
 WEBHOOK_PATH = f"/{TELEGRAM_BOT_TOKEN}"
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
