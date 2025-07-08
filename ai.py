@@ -1,3 +1,1 @@
-
-def get_ai_mode():
-    return "neutral"
+# AI logic placeholder
