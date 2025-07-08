@@ -1,3 +1,2 @@
 # Mp ORBbot
-
-Telegrambot med ORB-strategi körd som Web Service via Flask.
+En Telegrambot för backtesting av kryptostrategier.

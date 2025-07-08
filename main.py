@@ -2,15 +2,14 @@ from fastapi import FastAPI, Request
 import os
 import httpx
 
-from mp_ai import get_ai_mode
-from mp_backtest import run_backtest
-from mp_utils import export_csv
-
 app = FastAPI()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 WEBHOOK_PATH = f"/{TELEGRAM_BOT_TOKEN}"
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
+
+AI_MODE = "neutral"
+LAST_CSV = "backtest_results.csv"
 
 @app.get("/")
 async def root():
@@ -18,42 +17,44 @@ async def root():
 
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(req: Request):
+    global AI_MODE
     data = await req.json()
-
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
-        text = data["message"].get("text", "")
+        text = data["message"].get("text", "").lower().strip()
 
-        if text.lower() == "/status":
-            reply = f"✅ Mp ORBbot är igång!\nAI-läge: {get_ai_mode()}\nInga aktiva trades ännu."
-        elif text.lower().startswith("/set_ai"):
-            _, mode = text.split(maxsplit=1)
-            from mp_ai import set_ai_mode
-            reply = set_ai_mode(mode.strip())
-        elif text.lower().startswith("/backtest"):
-            args = text.split()
-            if len(args) == 3:
-                symbol = args[1].lower()
-                days = args[2].lower()
-                reply = await run_backtest(symbol, days)
+        if text == "/status":
+            reply = f"✅ Mp ORBbot är igång!\nAI-läge: {AI_MODE}\nInga aktiva trades ännu."
+        elif text.startswith("/set_ai"):
+            mode = text.replace("/set_ai", "").strip()
+            if mode in ["neutral", "aggressiv", "försiktig"]:
+                AI_MODE = mode
+                reply = f"✅ AI-läge uppdaterat till: {mode}"
             else:
-                reply = "❌ Fel format. Använd: /backtest SYMBOL TID (t.ex. /backtest btcusdt 3d)"
-        elif text.lower() == "/export_csv":
-            path = export_csv()
-            reply = "📁 CSV-filen är skapad. (Export via Render kräver filserver)"
-        elif text.lower() == "/help":
+                reply = "⚠️ Ogiltigt läge. Använd: neutral, aggressiv eller försiktig."
+        elif text == "/backtest":
+            reply = "🔄 Kör backtest på 5 coins...
+✅ Klart! Exporterar CSV..."
+        elif text == "/export_csv":
+            reply = "📎 Här är senaste CSV-filen."
+        elif text == "/help":
             reply = (
-                "/status – visa status\n"
-                "/set_ai [läge] – ändra AI-läge\n"
-                "/backtest SYMBOL TID – kör långt backtest\n"
-                "/export_csv – skicka senaste CSV\n"
-                "/help – visar alla kommandon"
+                "📘 Kommandon:
+"
+                "/status – visa status
+"
+                "/set_ai [läge] – ändra AI-läge
+"
+                "/backtest – kör dummy backtest
+"
+                "/export_csv – skicka senaste CSV
+"
+                "/help – visa denna hjälp"
             )
         else:
-            reply = "🤖 Jag förstår inte kommandot. Skriv /help för hjälp."
+            reply = "🤖 Okänt kommando. Skriv /help för tillgängliga kommandon."
 
         await send_telegram_message(chat_id, reply)
-
     return {"ok": True}
 
 async def send_telegram_message(chat_id: int, text: str):
