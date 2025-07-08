@@ -1,2 +1,2 @@
-# Mp ORBbot
-En Telegrambot för backtesting av kryptostrategier.
+# MpORBbot
+This is the MpORBbot project.
