@@ -1,1 +1,1 @@
-# mp ai logic
+# AI-läge

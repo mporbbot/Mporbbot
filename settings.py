@@ -1,1 +1,1 @@
-TELEGRAM_TOKEN = 'your_token_here'
+# Inställningar

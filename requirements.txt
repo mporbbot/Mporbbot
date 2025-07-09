@@ -1,4 +1,4 @@
-fastapi
-httpx
-python-dotenv
-uvicorn
+ccxt
+python-telegram-bot
+pandas
+numpy

@@ -1,2 +1,1 @@
-def handle_message():
-    pass
+# Kärnlogik

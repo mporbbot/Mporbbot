@@ -1,2 +1,2 @@
-# MpORBbot
-This is the MpORBbot project.
+# Mp ORBbot
+Tradingbot för KuCoin med ORB och AI-läge.
