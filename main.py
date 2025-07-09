@@ -1,1 +1,1 @@
-# Startpunkt
+print("Mp ORBbot startar...")

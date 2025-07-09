@@ -1,2 +1,3 @@
 #!/bin/bash
-python3 MpOrbbot/main.py
+chmod +x start.sh
+python main.py

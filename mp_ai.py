@@ -1,1 +1,1 @@
-# AI-läge
+# AI-filter och nivåhantering

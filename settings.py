@@ -1,1 +1,1 @@
-# Inställningar
+# Inställningar för boten

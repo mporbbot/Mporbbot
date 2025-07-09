@@ -1,2 +1,2 @@
 # Mp ORBbot
-Tradingbot för KuCoin med ORB och AI-läge.
+Detta är en AI-baserad ORB tradingbot för Render.
