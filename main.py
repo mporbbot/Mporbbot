@@ -1,1 +1,0 @@
-print("Mp ORBbot startar...")
