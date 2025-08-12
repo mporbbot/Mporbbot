@@ -1,1 +1,0 @@
-# AI-filter och nivåhantering
