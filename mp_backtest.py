@@ -1,1 +1,0 @@
-# Backtestlogik
