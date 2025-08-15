@@ -1,0 +1,8 @@
+python-telegram-bot==20.3
+pandas==2.0.3
+requests==2.31.0
+websockets==11.0.3
+aiohttp==3.8.5
+numpy==1.25.0
+python-dateutil==2.8.2
+kucoin-python==1.0.11
