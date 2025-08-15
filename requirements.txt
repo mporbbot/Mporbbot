@@ -1,0 +1,8 @@
+requests
+python-telegram-bot==20.7
+fastapi
+uvicorn
+pandas
+numpy
+python-dotenv
+kucoin-python
