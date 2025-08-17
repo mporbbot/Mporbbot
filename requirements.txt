@@ -2,3 +2,4 @@ fastapi
 uvicorn
 python-telegram-bot==13.15
 requests
+httpx==0.27.0
