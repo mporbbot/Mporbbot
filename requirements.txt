@@ -4,3 +4,4 @@ httpx==0.27.2
 kucoin-python==1.0.12
 pandas
 pytz
+python-telegram-bot==20.3
