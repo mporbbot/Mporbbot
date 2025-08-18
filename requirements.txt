@@ -1,0 +1,4 @@
+python-telegram-bot==20.7
+kucoin-python==1.0.12
+pandas
+pytz
