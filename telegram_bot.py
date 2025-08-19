@@ -146,12 +146,7 @@ async def _outbox_pumper():
 # === Proper embedded startup (no run_polling) ===
 async def _amain(token: str):
     """
-    We embed PTB v20 inside another app:
-      - initialize -> start
-      - start polling via updater
-      - start our pumper as a normal asyncio task
-      - idle until stop
-      - then stop + shutdown cleanly
+    Starta Telegram-boten korrekt i en egen tråd med PTB v20.
     """
     global _APP
     if not token:
@@ -166,23 +161,21 @@ async def _amain(token: str):
     try:
         await _APP.initialize()
         await _APP.start()
-
-        # Start polling & our pumper
         await _APP.updater.start_polling(drop_pending_updates=True)
+
+        # Starta outbox-pumpern
         pumper_task = asyncio.create_task(_outbox_pumper())
 
-        # Wait until the bot is stopped
-        await _APP.updater.idle()
+        LOG.info("[TG] Bot started, waiting for stop signal.")
+        # Behåll loopen igång tills någon stänger appen
+        stop_event = asyncio.Event()
+        await stop_event.wait()
 
     except Exception as e:
         LOG.error(f"[TG] startup error: {e}")
     finally:
-        # Cancel pumper cleanly
-        with suppress(asyncio.CancelledError):
-            for task in asyncio.all_tasks():
-                # don't cancel the current task twice
-                if task is not asyncio.current_task():
-                    task.cancel()
+        LOG.info("[TG] shutting down...")
         with suppress(Exception):
+            await _APP.updater.stop()
             await _APP.stop()
             await _APP.shutdown()
