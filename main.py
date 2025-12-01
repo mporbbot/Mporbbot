@@ -4,8 +4,6 @@
 4  # Live-PnL baserad på riktiga fills från KuCoin (funds + fee)
 5  # TESTBUY fixad – fungerar via knappar + kommando
 6  # Close_all SELL fixad – korrekt KuCoin rounding
-7  # Inga andra ändringar mot din originalfil
-8  
 9  import os
 10 import io
 11 import csv
