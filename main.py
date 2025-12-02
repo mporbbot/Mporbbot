@@ -49,7 +49,7 @@ WEBHOOK_BASE = os.getenv("WEBHOOK_BASE", "").rstrip("/")
 
 SYMBOLS = os.getenv(
     "SYMBOLS",
-    "BTC-USDT,ETH-USDT,ADA-USDT,LINK-USDT,XRP-USDT"
+    "BTC-USDT,ETH-USDT,ADA-USDT,LINK-USDT,XRP-USDT,GARI-USDT"
 ).replace(" ", "").split(",")
 
 TFS = os.getenv("TIMEFRAMES", "3m").replace(" ", "").split(",")
