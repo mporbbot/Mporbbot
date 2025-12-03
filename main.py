@@ -500,14 +500,17 @@ def cmd_start(update, context: CallbackContext):
         t = threading.Thread(target=trading_loop, args=(s,), daemon=True)
         t.start()
 
+
 def cmd_stop(update, context: CallbackContext):
     global RUNNING
     RUNNING = False
     update.message.reply_text("🛑 Bot *stoppad*.", parse_mode="Markdown")
 
+
 def cmd_status(update, context: CallbackContext):
     global LAST_STATUS
     update.message.reply_text(f"📡 *STATUS*\n{LAST_STATUS}", parse_mode="Markdown")
+
 
 def cmd_stats(update, context: CallbackContext):
     global trade_count, win_count, loss_count, open_positions, CURRENT_REGIME, THRESHOLD
@@ -531,12 +534,14 @@ def cmd_stats(update, context: CallbackContext):
     )
     update.message.reply_text(txt, parse_mode="Markdown")
 
+
 def cmd_pnl_today(update, context: CallbackContext):
     global daily_pnl
     update.message.reply_text(
         f"💰 *Dagens PnL:* {round(daily_pnl, 4)} USDT",
         parse_mode="Markdown"
     )
+
 
 def cmd_sl(update, context: CallbackContext):
     global STOP_LOSS_PCT
@@ -551,6 +556,7 @@ def cmd_sl(update, context: CallbackContext):
     else:
         update.message.reply_text(f"Aktuellt fallback-SL: {STOP_LOSS_PCT} %")
 
+
 def cmd_risk(update, context: CallbackContext):
     global THRESHOLD
     msg = update.message.text.split()
@@ -564,6 +570,7 @@ def cmd_risk(update, context: CallbackContext):
     else:
         update.message.reply_text(f"Aktuell threshold: {THRESHOLD}")
 
+
 def set_threshold(update, context: CallbackContext, value):
     global THRESHOLD
     THRESHOLD = value
@@ -572,14 +579,18 @@ def set_threshold(update, context: CallbackContext, value):
         parse_mode="Markdown"
     )
 
+
 def cmd_threshold_10(update, context: CallbackContext):
     set_threshold(update, context, 10)
+
 
 def cmd_threshold_20(update, context: CallbackContext):
     set_threshold(update, context, 20)
 
+
 def cmd_threshold_30(update, context: CallbackContext):
     set_threshold(update, context, 30)
+
 
 def cmd_testbuy(update, context: CallbackContext):
     try:
@@ -611,6 +622,7 @@ def cmd_testbuy(update, context: CallbackContext):
         traceback.print_exc()
         update.message.reply_text("Fel vid /testbuy. Kolla loggen.")
 
+
 def cmd_export_mock(update, context: CallbackContext):
     if os.path.isfile(MOCK_LOG):
         with open(MOCK_LOG, "rb") as f:
@@ -618,12 +630,14 @@ def cmd_export_mock(update, context: CallbackContext):
     else:
         update.message.reply_text("Ingen mock-logfil hittades ännu.")
 
+
 def cmd_export_live(update, context: CallbackContext):
     if os.path.isfile(LIVE_LOG):
         with open(LIVE_LOG, "rb") as f:
             update.message.reply_document(f, filename=LIVE_LOG)
     else:
         update.message.reply_text("Ingen live-logfil hittades ännu.")
+
 
 #########################################################
 # MAIN / STARTUP
@@ -652,6 +666,7 @@ def main():
 
     updater.start_polling()
     updater.idle()
+
 
 if __name__ == "__main__":
     main()
