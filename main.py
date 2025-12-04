@@ -233,7 +233,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 ###############################################################
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global bot_running, bot_mode
+    global bot_running, bot_mode, ai_mode, entry_mode, trade_size_usdt
 
     query = update.callback_query
     await query.answer()
@@ -278,12 +278,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if cmd.startswith("ai_"):
-        global ai_mode
-        if cmd == "ai_aggr": ai_mode = "aggressiv"
-        if cmd == "ai_neut": ai_mode = "neutral"
-        if cmd == "ai_safe": ai_mode = "forsiktig"
-        await query.edit_message_text(f"AI-läge satt till: {ai_mode}", reply_markup=main_menu())
-        return
+    if cmd == "ai_aggr": ai_mode = "aggressiv"
+    if cmd == "ai_neut": ai_mode = "neutral"
+    if cmd == "ai_safe": ai_mode = "forsiktig"
+    await query.edit_message_text(f"AI-läge satt till: {ai_mode}", reply_markup=main_menu())
+    return
 
     if cmd == "entry_menu":
         kb = [
