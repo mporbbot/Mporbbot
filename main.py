@@ -29,7 +29,7 @@ from telegram.ext import (
 # TELEGRAM-TOKEN (hårdkodad)
 # ============================================================
 
-BOT_TOKEN = "8079688612:AAGM-6vTQ6R_ZSdfnQWD0LCqmS7_zk46Us"
+BOT_TOKEN = "8265069090:AAHVB72TmPDrZP3U9jU_fEzXwdCnoY5tcSI"
 
 if not BOT_TOKEN or ":" not in BOT_TOKEN:
     raise ValueError("❌ BOT_TOKEN i main.py är ogiltig. Kontrollera strängen.")
