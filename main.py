@@ -682,7 +682,6 @@ class MeanReversionEngine:
                 m = self.try_open_long(sym)
                 if m:
                     out.append(m)
-           z
 
 Du skickade Del 1/2 ✅ – jag såg också en liten “klippning” som gör att min förra Del 2/2 blev trasig (det dök upp ett **“z”** mitt i). Här får du en **helt ren och komplett DEL 2/2** som passar ihop med DEL 1/2 du skickade.
 
