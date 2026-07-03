@@ -24,11 +24,8 @@ MODE = "mock"
 EXCHANGE_ID = "kucoin"
 
 SYMBOLS = [
-    "BTC/USDT",
     "ETH/USDT",
-    "XRP/USDT",
-    "ADA/USDT",
-    "LINK/USDT",
+
 ]
 
 # =========================
