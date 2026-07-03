@@ -71,7 +71,7 @@ USE_PULLBACK_ENTRY = False
 # =========================
 
 USE_TREND_FILTER = True
-USE_VOLUME_FILTER = True
+USE_VOLUME_FILTER = False
 
 VOLUME_MULTIPLIER = 1.0
 
