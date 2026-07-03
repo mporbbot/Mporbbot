@@ -1,0 +1,278 @@
+from datetime import datetime, timezone
+
+from config import (
+    ORB_HOUR_UTC,
+    ORB_MINUTE_UTC,
+    BREAKOUT_BUFFER,
+    MIN_ORB_PERCENT,
+    MAX_ORB_PERCENT,
+    RISK_REWARD,
+    USE_RETEST_ENTRY,
+    USE_MOMENTUM_ENTRY,
+    USE_PULLBACK_ENTRY,
+    USE_TREND_FILTER,
+    USE_VOLUME_FILTER,
+    VOLUME_MULTIPLIER,
+)
+
+from logger import log_signal
+
+
+class ORBStrategy:
+    def __init__(self, exchange):
+        self.exchange = exchange
+        self.state = {}
+
+    def get_state(self, symbol):
+        if symbol not in self.state:
+            self.state[symbol] = {
+                "breakout_seen": False,
+                "retest_seen": False,
+                "reason": "Ingen analys ännu",
+                "orb_high": None,
+                "orb_low": None,
+                "last_entry_type": None,
+            }
+
+        return self.state[symbol]
+
+    def get_orb(self, symbol):
+        candles = self.exchange.fetch_candles(symbol, "15m", 120)
+        today = datetime.now(timezone.utc).date()
+
+        for c in candles:
+            t = datetime.fromtimestamp(
+                c["time"] / 1000,
+                tz=timezone.utc
+            )
+
+            if (
+                t.date() == today
+                and t.hour == ORB_HOUR_UTC
+                and t.minute == ORB_MINUTE_UTC
+            ):
+                orb_size = (c["high"] - c["low"]) / c["low"]
+
+                if orb_size < MIN_ORB_PERCENT:
+                    return None, "ORB för liten"
+
+                if orb_size > MAX_ORB_PERCENT:
+                    return None, "ORB för stor"
+
+                return {
+                    "high": c["high"],
+                    "low": c["low"],
+                    "time": t,
+                    "size": orb_size
+                }, "OK"
+
+        return None, "Ingen ORB hittad"
+
+    def trend_ok(self, symbol):
+        if not USE_TREND_FILTER:
+            return True
+
+        candles = self.exchange.fetch_candles(symbol, "1h", 250)
+
+        if len(candles) < 200:
+            return False
+
+        closes = [c["close"] for c in candles]
+        ema200 = sum(closes[-200:]) / 200
+
+        return closes[-1] > ema200
+
+    def volume_ok(self, candles):
+        if not USE_VOLUME_FILTER:
+            return True
+
+        if len(candles) < 21:
+            return False
+
+        latest = candles[-1]["volume"]
+
+        avg = sum(
+            c["volume"]
+            for c in candles[-21:-1]
+        ) / 20
+
+        return latest > avg * VOLUME_MULTIPLIER
+
+    def check_retest_entry(self, symbol, orb, candles15, candles5):
+        state = self.get_state(symbol)
+
+        last15 = candles15[-1]
+        last5 = candles5[-1]
+
+        breakout_level = orb["high"] * (1 + BREAKOUT_BUFFER)
+
+        if last15["close"] > breakout_level:
+            state["breakout_seen"] = True
+
+        if not state["breakout_seen"]:
+            return None, "Väntar på 15m breakout"
+
+        if last5["low"] <= orb["high"]:
+            state["retest_seen"] = True
+
+        if not state["retest_seen"]:
+            return None, "15m breakout klar, väntar på 5m retest"
+
+        reclaim = last5["close"] > orb["high"]
+        bullish = last5["close"] > last5["open"]
+
+        if not reclaim:
+            return None, "Retest klar, men ingen close över ORB high"
+
+        if not bullish:
+            return None, "Close över ORB men inte bullish candle"
+
+        return last5["close"], "ORB_RETEST"
+
+    def check_momentum_entry(self, symbol, orb, candles15, candles5):
+        last15 = candles15[-1]
+        last5 = candles5[-1]
+
+        breakout_level = orb["high"] * (1 + BREAKOUT_BUFFER)
+
+        breakout = last15["close"] > breakout_level
+        bullish = last5["close"] > last5["open"]
+
+        if breakout and bullish:
+            return last5["close"], "ORB_MOMENTUM"
+
+        return None, "Ingen momentum-entry"
+
+    def check_pullback_entry(self, symbol, orb, candles15, candles5):
+        state = self.get_state(symbol)
+
+        last15 = candles15[-1]
+        last5 = candles5[-1]
+
+        breakout_level = orb["high"] * (1 + BREAKOUT_BUFFER)
+
+        if last15["close"] > breakout_level:
+            state["breakout_seen"] = True
+
+        if not state["breakout_seen"]:
+            return None, "Ingen breakout för pullback"
+
+        closes = [c["close"] for c in candles5[-20:]]
+        ema20 = sum(closes) / len(closes)
+
+        pullback = last5["low"] <= ema20
+        reclaim = last5["close"] > ema20
+        bullish = last5["close"] > last5["open"]
+
+        if pullback and reclaim and bullish:
+            return last5["close"], "ORB_PULLBACK"
+
+        return None, "Ingen pullback-entry"
+
+    def check(self, symbol):
+        state = self.get_state(symbol)
+
+        orb, orb_reason = self.get_orb(symbol)
+
+        if not orb:
+            state["reason"] = orb_reason
+            log_signal(symbol, "NO_TRADE", orb_reason)
+            return None
+
+        state["orb_high"] = orb["high"]
+        state["orb_low"] = orb["low"]
+
+        candles15 = self.exchange.fetch_candles(symbol, "15m", 50)
+        candles5 = self.exchange.fetch_candles(symbol, "5m", 80)
+
+        if not self.trend_ok(symbol):
+            state["reason"] = "Trendfilter nekar"
+            log_signal(symbol, "NO_TRADE", "Trendfilter nekar", price=candles5[-1]["close"], orb_high=orb["high"], orb_low=orb["low"])
+            return None
+
+        if not self.volume_ok(candles5):
+            state["reason"] = "Volymfilter nekar"
+            log_signal(symbol, "NO_TRADE", "Volymfilter nekar", price=candles5[-1]["close"], orb_high=orb["high"], orb_low=orb["low"])
+            return None
+
+        checks = []
+
+        if USE_RETEST_ENTRY:
+            checks.append(self.check_retest_entry)
+
+        if USE_MOMENTUM_ENTRY:
+            checks.append(self.check_momentum_entry)
+
+        if USE_PULLBACK_ENTRY:
+            checks.append(self.check_pullback_entry)
+
+        last_reason = "Ingen entry aktiv"
+
+        for check_func in checks:
+            entry, entry_type_or_reason = check_func(
+                symbol,
+                orb,
+                candles15,
+                candles5
+            )
+
+            if entry:
+                stop = orb["low"]
+                risk = entry - stop
+
+                if risk <= 0:
+                    state["reason"] = "Ogiltig risk"
+                    log_signal(symbol, "NO_TRADE", "Ogiltig risk", price=entry, orb_high=orb["high"], orb_low=orb["low"])
+                    return None
+
+                tp = entry + risk * RISK_REWARD
+
+                state["reason"] = "TRADE GODKÄND"
+                state["last_entry_type"] = entry_type_or_reason
+
+                log_signal(
+                    symbol,
+                    "TRADE",
+                    "Entry godkänd",
+                    entry_type_or_reason,
+                    entry,
+                    orb["high"],
+                    orb["low"]
+                )
+
+                return {
+                    "entry": entry,
+                    "stop": stop,
+                    "tp": tp,
+                    "orb_high": orb["high"],
+                    "orb_low": orb["low"],
+                    "entry_type": entry_type_or_reason
+                }
+
+            last_reason = entry_type_or_reason
+
+        state["reason"] = last_reason
+
+        log_signal(
+            symbol,
+            "NO_TRADE",
+            last_reason,
+            "",
+            candles5[-1]["close"],
+            orb["high"],
+            orb["low"]
+        )
+
+        return None
+
+    def debug(self, symbol):
+        state = self.get_state(symbol)
+
+        return {
+            "reason": state["reason"],
+            "breakout_seen": state["breakout_seen"],
+            "retest_seen": state["retest_seen"],
+            "orb_high": state["orb_high"],
+            "orb_low": state["orb_low"],
+            "last_entry_type": state["last_entry_type"],
+        }
