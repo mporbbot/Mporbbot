@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+CHAT_ID_FILE = "chat_id.txt"
 
 EXCHANGE_ID = "kucoin"
 MODE = "mock"
