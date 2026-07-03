@@ -39,7 +39,7 @@ TRADE_SIZE_USDT = 30.0
 MAX_OPEN_TRADES = 5
 FEE_RATE = 0.001
 
-POLL_SECONDS = 15
+POLL_SECONDS = 60
 
 # =========================
 # ORB
