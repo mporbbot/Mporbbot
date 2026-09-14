@@ -883,26 +883,10 @@ class TradingEngine:
             if micro_break:
                 setup = "MICRO_BREAKOUT"
 
-
-        if setup is None:
-            return None
-
-        self.last_signal_candle[
-            symbol
-        ] = candle_time
-
-        return {
-            "setup": setup,
-            "atr": atr_value,
-            "ema200_positive": trend[
-                "ema200_positive"
-            ],
-        }  
-        def can_open(
+    def can_open(
         self,
         symbol
     ):
-
         if symbol in self.positions:
             return False
 
@@ -919,6 +903,7 @@ class TradingEngine:
         if now_ts() < cooldown:
             return False
 
+        return True
         return True
 
     def open_position(
