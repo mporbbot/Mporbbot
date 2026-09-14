@@ -897,7 +897,8 @@ class TradingEngine:
             "ema200_positive": trend[
                 "ema200_positive"
             ],
-        }    def can_open(
+        }  
+        def can_open(
         self,
         symbol
     ):
